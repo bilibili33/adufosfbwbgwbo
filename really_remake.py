@@ -1,10 +1,16 @@
 # coding=gbk
-import requests,json,time,sys,bs4,re
+import requests
+import json
+import time
+import sys
+import bs4
+import re
 from win10toast import ToastNotifier
 from PIL import Image
-import pytesseract
+# import pytesseract
+import ddddocr
 
-pytesseract.pytesseract.tesseract_cmd = r'D:\Program Files (x86)\Tesseract-OCR\tesseract.exe'
+# pytesseract.pytesseract.tesseract_cmd = r'D:\Program Files (x86)\Tesseract-OCR\tesseract.exe'
 
 class Main:
     def __init__(self):
@@ -43,6 +49,7 @@ class Main:
             ''')
         # print("Ver1.0 createTime:20211205\n应对学校网站更新，加了验证码对应方法，但是代码很乱")
         print("Ver1.1 crateTime:20211213\n说明：找出来了提交时候的需要的验证码，以及重新写了一遍")
+        print("Ver1.2 crateTime:20211214\n说明：改了验证码识别库，不用额外装软件")
     def warn_bubble(self, msg):
         print("Warning: ",msg)
         toaster = ToastNotifier()
@@ -171,12 +178,20 @@ class Main:
 
         return True
 
-    def captcha2str(self):
-        path = f"captcha.jpg"
-        captcha = Image.open(path)
-        result = pytesseract.image_to_string(captcha)
-        print('验证码：'+ result.replace('\n', ''))
-        return result.replace('\n', '')
+    # def captcha2str(self):
+    #     path = f"captcha.jpg"
+    #     captcha = Image.open(path)
+    #     result = pytesseract.image_to_string(captcha)
+    #     print('验证码：'+ result.replace('\n', ''))
+    #     return result.replace('\n', '')
+
+    def captcha2str_ddddocr(self):
+        ocr = ddddocr.DdddOcr()
+        with open("captcha.jpg", 'rb') as captcha:
+            img1 = captcha.read()
+        result = ocr.classification(img1)
+        print("验证码：", result)
+        return result
 
     def getExecution(self):
         self.printLine()
@@ -229,7 +244,7 @@ class Main:
         pic_data = res.content
         with open('captcha.jpg', 'wb') as f:
             f.write(pic_data)
-        captcha_str = self.captcha2str()
+        captcha_str = self.captcha2str_ddddocr()
         return captcha_str
 
     def loginFF(self):
@@ -248,6 +263,7 @@ class Main:
                 try:
                     captcha_str = self.getCaptcha()
                     captcha_str1 = int(captcha_str)
+                    # 这有个类型验证是因为之前用的是 pytesseract
                     print("当前captcha类型：", type(captcha_str1))
                     print(f"当前验证码识别循环次：{j+1}/5 最大5次")
                     break
@@ -418,7 +434,7 @@ class Main:
             sd = "下午"
             print(sd)
         # 时段检测
-        if 00 <= nowHour < 3 :
+        if 00 <= nowHour < 3:
             self.info_bubble("系统维护时间，暂时无法进行健康填报，0-3点不可填报")
             return False
 
@@ -481,7 +497,6 @@ class Main:
                        "sd": sd,
                        "bz": "",
                        "_ext": "{}"}}
-
             print(data)
             update_url = "https://web-vpn.sues.edu.cn/https/77726476706e69737468656265737421e7f85397213c6747301b9ca98b1b26312700d3d1/default/work/shgcd/jkxxcj/com.sudytech.work.shgcd.jkxxcj.jkxxcj.saveOrUpdate.biz.ext?vpn-12-o2-workflow.sues.edu.cn"
             headers = {
@@ -491,12 +506,9 @@ class Main:
                 'User-Agent': 'Mozilla / 5.0(Windows NT 10.0;Win64;x64) AppleWebKit / 537.36(KHTML, likeGecko) Chrome / 92.0.4515.131Safari / 537.36',
                 'verification-code': verification_code
             }
-
             if debug_mode:
                 sys.exit()
-
             response = requests.post(update_url, headers=headers, data=json.dumps(data),cookies=self.main_cookies_dict)
-
             try:
                 if json.loads(response.text)['result']['success']:
                     self.info_bubble("提交成功")
@@ -525,7 +537,7 @@ class Main:
         else:
             # self.update()
             self.get_history(tjsj="2021-12-10")
-            # self.get_post_captcha()
 
+# update 传 debug mode 就不提交
 do = Main()
 do.af()
