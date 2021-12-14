@@ -6,7 +6,7 @@ import sys
 import bs4
 import re
 from win10toast import ToastNotifier
-from PIL import Image
+# from PIL import Image
 # import pytesseract
 import ddddocr
 
@@ -252,6 +252,9 @@ class Main:
         print("当前位置：Login 调用")
         if self.main_cookies_dict == {}:
             self.warn_bubble("未调用getExecution和getCaptcha")
+            return False
+        elif self.uname == "" or self.password1 == "":
+            self.warn_bubble("用户名或密码为空")
             return False
         execution = self.main_execution
         # k是登录循环，j是验证码识别循环，大循环不累计验证码识别错误次数
@@ -527,16 +530,24 @@ class Main:
                 return False
 
     def af(self):
-        self.web_vpn_state()
-        self.configCheck()
-        self.getExecution()
-        self.loginFF()
+        stat1 = self.web_vpn_state()
+        if not stat1:
+            return False
+        stat2 = self.configCheck()
+        if not stat2:
+            return False
+        stat3 = self.getExecution()
+        if not stat3:
+            return False
+        stat4 = self.loginFF()
+        if not stat4:
+            return False
         if self.main_cookies_dict == {}:
             pass
         # 直接退出
         else:
-            # self.update()
-            self.get_history(tjsj="2021-12-10")
+            self.update()
+            # self.get_history(tjsj="2021-12-10")
 
 # update 传 debug mode 就不提交
 do = Main()
