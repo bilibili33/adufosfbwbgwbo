@@ -1,4 +1,6 @@
 # coding=gbk
+import base64
+
 import requests
 import json
 import time
@@ -48,15 +50,16 @@ class Main:
                 |__|    /__/ \__\ /__/ \__\ |__|\__\            |__|     |__|     \__/  \__/     |_______||__| \__| 
             ''')
         # print("Ver1.0 createTime:20211205\n应对学校网站更新，加了验证码对应方法，但是代码很乱")
-        print("Ver1.1 crateTime:20211213\n说明：找出来了提交时候的需要的验证码，以及重新写了一遍")
-        print("Ver1.2 crateTime:20211214\n说明：改了验证码识别库，不用额外装软件")
+        # print("Ver1.1 crateTime:20211213\n说明：找出来了提交时候的需要的验证码，以及重新写了一遍")
+        # print("Ver1.2 crateTime:20211214\n说明：改了验证码识别库，不用额外装软件")
+        print("Ver1.3 crateTime:20211216\n说明：加了base64")
     def warn_bubble(self, msg):
-        print("Warning: ",msg)
+        print("Warning: ", msg)
         toaster = ToastNotifier()
         toaster.show_toast("发生错误", msg, icon_path=r'fxxk_tiwen.ico')
 
     def info_bubble(self, msg):
-        print("Info: ",msg)
+        print("Info: ", msg)
         toaster = ToastNotifier()
         toaster.show_toast("提示信息", msg, icon_path=r'fxxk_tiwen.ico')
 
@@ -68,7 +71,7 @@ class Main:
         print("")
 
     def set_readme(self):
-        with open("readme.txt","w") as info1:
+        with open("readme.txt", "w") as info1:
             info1.write('''此说明在配置文件检查出错时会重写，请不要用于记录重要内容，如果配置文件改炸了改不回来删掉即可\n\n
             第一次使用本脚本请在完成后去网页上确认一遍\n\n密码需要先拖去加密，网址https://bilibili33.github.io/rsa_passwd_for_web_vpn.github.io/\n
             体温范围是36-37，四舍五入保留一位小数\nrenyuanweizhi是人员位置，1是留校，2是在沪\nxiaoqu是校区，1是松江，2是虹口，3是长宁''')
@@ -500,8 +503,14 @@ class Main:
                        "sd": sd,
                        "bz": "",
                        "_ext": "{}"}}
-            print(data)
-            update_url = "https://web-vpn.sues.edu.cn/https/77726476706e69737468656265737421e7f85397213c6747301b9ca98b1b26312700d3d1/default/work/shgcd/jkxxcj/com.sudytech.work.shgcd.jkxxcj.jkxxcj.saveOrUpdate.biz.ext?vpn-12-o2-workflow.sues.edu.cn"
+
+            print("uncoded:", data)
+            encode_data = base64.b64encode(str(data).encode("utf-8"))
+            print("encoded:", encode_data)
+            json_data = {"params": encode_data.decode()}
+            print("json_data:", json_data)
+            print(json.dumps(json_data))
+            update_url = f"https://web-vpn.sues.edu.cn/https/77726476706e69737468656265737421e7f85397213c6747301b9ca98b1b26312700d3d1/default/work/shgcd/jkxxcj/com.sudytech.work.shgcd.jkxxcj.jkxxcj.saveOrUpdate.biz.ext?vpn-12-o2-workflow.sues.edu.cn?gh={self.gh}"
             headers = {
                 'Content-Type': 'text/json',
                 'Origin': 'https://web-vpn.sues.edu.cn',
@@ -510,8 +519,9 @@ class Main:
                 'verification-code': verification_code
             }
             if debug_mode:
+                print(json_data)
                 sys.exit()
-            response = requests.post(update_url, headers=headers, data=json.dumps(data),cookies=self.main_cookies_dict)
+            response = requests.post(update_url, headers=headers, data=json.dumps(json_data), cookies=self.main_cookies_dict)
             try:
                 if json.loads(response.text)['result']['success']:
                     self.info_bubble("提交成功")
@@ -529,7 +539,7 @@ class Main:
                 time.sleep(10)
                 return False
 
-    def af(self):
+    def af(self, debug_mode=False):
         stat1 = self.web_vpn_state()
         if not stat1:
             return False
@@ -546,9 +556,10 @@ class Main:
             pass
         # 直接退出
         else:
-            self.update()
+            self.update(debug_mode)
             # self.get_history(tjsj="2021-12-10")
+            pass
 
 # update 传 debug mode 就不提交
 do = Main()
-do.af()
+do.af(debug_mode=False)
