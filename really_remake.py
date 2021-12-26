@@ -457,7 +457,7 @@ class Main:
                 self.warn_bubble("未获取到正确信息，异常退出")
                 sys.exit()
             if self.renyuanweizhi == "1":
-                data = {"params": {"sqrid": self.sqrid,
+                data = {"sqrid": self.sqrid,
                                    "sqbmid": self.sqbmid,
                                    "rysf": self.rysf,
                                    "sqrmc": self.sqrmc,
@@ -477,9 +477,9 @@ class Main:
                                    "tw": self.tw,
                                    "sd": sd,
                                    "bz": "",
-                                   "_ext": "{}"}}
+                                   "_ext": "{}"}
             else:
-                data = {"params": {"sqrid": self.sqrid,
+                data = {"sqrid": self.sqrid,
                        "sqbmid": self.sqbmid,
                        "rysf": self.rysf,
                        "sqrmc": self.sqrmc,
@@ -502,7 +502,7 @@ class Main:
                        "tw": self.tw,
                        "sd": sd,
                        "bz": "",
-                       "_ext": "{}"}}
+                       "_ext": "{}"}
 
             print("uncoded:", data)
             encode_data = base64.b64encode(str(data).encode("utf-8"))
